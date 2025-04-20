@@ -9,7 +9,7 @@ import triton
 import triton.language as tl
 from einops import rearrange, repeat
 
-from fla.ops.utils import prepare_chunk_indices
+from fla.ops.utils import prepare_chunk_indices, prepare_lens
 from fla.utils import get_multiprocessor_count, input_guard
 
 
@@ -160,7 +160,11 @@ def rotary_embedding_fwdbwd(
     R2 = R * 2
 
     assert D <= 256, "Only support D <= 256"
-    assert TR >= T, "TR must be >= T"
+    if is_varlen:
+        lens = prepare_lens(cu_seqlens)
+        assert torch.all(lens <= TR), f"cu_seqlens must be <= TR, got {lens} and {TR}"
+    else:
+        assert TR >= T, f"TR must be >= T, got {TR} and {T}"
 
     assert cos.dtype == sin.dtype, f"cos and sin must have the same dtype, got {cos.dtype} and {sin.dtype}"
     assert x.dtype == cos.dtype, f"Input and cos/sin must have the same dtype, got {x.dtype} and {cos.dtype}"
@@ -169,7 +173,10 @@ def rotary_embedding_fwdbwd(
         assert seqlen_offsets.shape == (N,)
         assert seqlen_offsets.dtype in [torch.int32, torch.int64]
     else:
-        assert seqlen_offsets + T <= TR
+        if is_varlen:
+            assert torch.all(seqlen_offsets + lens <= TR), f"seqlen_offsets must be <= TR, got {seqlen_offsets} and {TR}"
+        else:
+            assert seqlen_offsets + T <= TR, f"seqlen_offsets must be <= TR, got {seqlen_offsets} and {TR}"
 
     y = torch.empty_like(x) if not inplace else x
     if R2 < D and not inplace:
