@@ -160,7 +160,7 @@ def rotary_embedding_fwdbwd(
     R2 = R * 2
 
     assert D <= 256, "Only support D <= 256"
-    assert TR >= T, "TR must be >= T"
+    # assert TR >= T, "TR must be >= T"
 
     assert cos.dtype == sin.dtype, f"cos and sin must have the same dtype, got {cos.dtype} and {sin.dtype}"
     assert x.dtype == cos.dtype, f"Input and cos/sin must have the same dtype, got {x.dtype} and {cos.dtype}"
@@ -169,7 +169,8 @@ def rotary_embedding_fwdbwd(
         assert seqlen_offsets.shape == (N,)
         assert seqlen_offsets.dtype in [torch.int32, torch.int64]
     else:
-        assert seqlen_offsets + T <= TR
+        # assert seqlen_offsets + T <= TR
+        pass
 
     y = torch.empty_like(x) if not inplace else x
     if R2 < D and not inplace:

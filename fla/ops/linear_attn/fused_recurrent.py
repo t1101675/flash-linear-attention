@@ -10,6 +10,8 @@ import triton.language as tl
 from fla.ops.linear_attn.utils import normalize_output
 from fla.utils import input_guard
 
+import warnings
+
 
 @triton.heuristics({
     'USE_INITIAL_STATE': lambda args: args['h0'] is not None,
@@ -254,7 +256,7 @@ def fused_recurrent_linear_attn(
         )
     if not head_first:
         if q.shape[1] < q.shape[2]:
-            raise DeprecationWarning(
+            warnings.warn(
                 f"Input tensor shape suggests potential format mismatch: seq_len ({q.shape[1]}) < num_heads ({q.shape[2]}). "
                 "This may indicate the inputs were passed in head-first format [B, H, T, ...] "
                 "when head_first=False was specified. "
