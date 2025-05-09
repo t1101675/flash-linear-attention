@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fla.models.abc import ABCConfig, ABCForCausalLM, ABCModel
-from fla.models.bitnet import BitNetConfig, BitNetForCausalLM, BitNetModel
+# from fla.models.bitnet import BitNetConfig, BitNetForCausalLM, BitNetModel
 from fla.models.delta_net import DeltaNetConfig, DeltaNetForCausalLM, DeltaNetModel
 from fla.models.forgetting_transformer import (
     ForgettingTransformerConfig,
@@ -27,7 +27,7 @@ from fla.models.transformer import TransformerConfig, TransformerForCausalLM, Tr
 
 __all__ = [
     'ABCConfig', 'ABCForCausalLM', 'ABCModel',
-    'BitNetConfig', 'BitNetForCausalLM', 'BitNetModel',
+    # 'BitNetConfig', 'BitNetForCausalLM', 'BitNetModel',
     'DeltaNetConfig', 'DeltaNetForCausalLM', 'DeltaNetModel',
     'ForgettingTransformerConfig', 'ForgettingTransformerForCausalLM', 'ForgettingTransformerModel',
     'GatedDeltaNetConfig', 'GatedDeltaNetForCausalLM', 'GatedDeltaNetModel',
