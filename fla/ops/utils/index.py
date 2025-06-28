@@ -46,7 +46,8 @@ def prepare_position_ids(cu_seqlens: torch.LongTensor) -> torch.LongTensor:
 
 @tensor_cache
 def prepare_sequence_ids(cu_seqlens: torch.LongTensor) -> torch.LongTensor:
-    return prepare_position_ids(cu_seqlens).eq(0).cumsum(0) - 1
+    seq_lens = prepare_lens(cu_seqlens).unbind()
+    return torch.cat([torch.full((n,), i, dtype=cu_seqlens.dtype, device=cu_seqlens.device) for i, n in enumerate(seq_lens)])
 
 
 @tensor_cache
@@ -60,8 +61,10 @@ def prepare_chunk_indices(
     cu_seqlens: torch.LongTensor,
     chunk_size: int
 ) -> torch.LongTensor:
-    indices = torch.cat([torch.arange(n) for n in triton.cdiv(prepare_lens(cu_seqlens), chunk_size).tolist()])
-    return torch.stack([indices.eq(0).cumsum(0) - 1, indices], 1).to(cu_seqlens)
+    chunk_lens = triton.cdiv(prepare_lens(cu_seqlens), chunk_size).tolist()
+    indices = torch.cat([torch.arange(n) for n in chunk_lens])
+    chunk_indices = torch.cat([torch.full((n,), i) for i, n in enumerate(chunk_lens)])
+    return torch.stack([chunk_indices, indices], 1).to(cu_seqlens)
 
 
 @tensor_cache
