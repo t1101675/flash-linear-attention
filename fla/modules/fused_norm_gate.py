@@ -718,6 +718,7 @@ class LayerNormGatedFunction(torch.autograd.Function):
             None,
             None,
             None,
+            None
         )
 
 
@@ -825,6 +826,7 @@ class LayerNormGatedLinearFunction(torch.autograd.Function):
             None,
             None,
             None,
+            None
         )
 
 
