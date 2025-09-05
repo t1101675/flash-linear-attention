@@ -98,7 +98,7 @@ class MambaConfig(PretrainedConfig):
     >>> configuration = model.config
     ```"""
 
-    model_type = "mamba"
+    model_type = "mamba_fla"
 
     def __init__(
         self,

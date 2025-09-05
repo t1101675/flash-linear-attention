@@ -89,7 +89,7 @@ def l2norm_fwd_kernel(
     y,
     rstd,
     eps,
-    T: tl.constexpr,
+    T,
     D: tl.constexpr,
     BD: tl.constexpr,
     NB: tl.constexpr,
@@ -123,7 +123,7 @@ def l2norm_bwd_kernel(
     dy,
     dx,
     eps,
-    T: tl.constexpr,
+    T,
     D: tl.constexpr,
     BD: tl.constexpr,
     NB: tl.constexpr,
@@ -145,7 +145,8 @@ def l2norm_bwd_kernel(
 def l2norm_fwd(
     x: torch.Tensor,
     eps: float = 1e-6,
-    output_dtype: Optional[torch.dtype] = None
+    output_dtype: Optional[torch.dtype] = None,
+    autotune_interval: int = 2048
 ):
     x_shape_og = x.shape
     x = x.view(-1, x.shape[-1])
@@ -164,7 +165,7 @@ def l2norm_fwd(
 
     rstd = torch.empty((T,), dtype=torch.float32, device=x.device)
     if D <= 512:
-        NB = triton.cdiv(T, 2048)
+        NB = triton.cdiv(T, autotune_interval)
         def grid(meta): return (triton.cdiv(T, meta['BT']), )
         l2norm_fwd_kernel[grid](
             x=x,
@@ -243,9 +244,10 @@ class L2NormFunction(torch.autograd.Function):
         ctx,
         x,
         eps=1e-6,
-        output_dtype=None
+        output_dtype=None,
+        autotune_interval=2048
     ):
-        y, rstd = l2norm_fwd(x, eps, output_dtype)
+        y, rstd = l2norm_fwd(x, eps, output_dtype, autotune_interval)
         ctx.eps = eps
         ctx.x_dtype = x.dtype
         ctx.save_for_backward(y, rstd)
@@ -262,9 +264,10 @@ class L2NormFunction(torch.autograd.Function):
 def l2norm(
     x: torch.Tensor,
     eps: float = 1e-6,
-    output_dtype: Optional[torch.dtype] = None
+    output_dtype: Optional[torch.dtype] = None,
+    autotune_interval: int = 2048
 ) -> torch.Tensor:
-    return L2NormFunction.apply(x, eps, output_dtype)
+    return L2NormFunction.apply(x, eps, output_dtype, autotune_interval)
 
 
 l2_norm = l2norm
@@ -275,11 +278,13 @@ class L2Norm(nn.Module):
     def __init__(
         self,
         eps: float = 1e-6,
-        output_dtype: Optional[torch.dtype] = None
+        output_dtype: Optional[torch.dtype] = None,
+        autotune_interval: int = 2048
     ):
         super().__init__()
         self.eps = eps
         self.output_dtype = output_dtype
+        self.autotune_interval = autotune_interval
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return l2norm(x, self.eps, self.output_dtype)
+        return l2norm(x, self.eps, self.output_dtype, self.autotune_interval)

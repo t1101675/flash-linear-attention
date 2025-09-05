@@ -165,11 +165,12 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
         initial_state: torch.Tensor,
         output_final_state: bool,
         cu_seqlens: Optional[torch.LongTensor] = None,
-        use_qk_l2norm_in_kernel: bool = False
+        use_qk_l2norm_in_kernel: bool = False,
+        autotune_interval: int = 2048
     ):
         if use_qk_l2norm_in_kernel:
-            q, q_rstd = l2norm_fwd(q)
-            k, k_rstd = l2norm_fwd(k)
+            q, q_rstd = l2norm_fwd(q, autotune_interval=autotune_interval)
+            k, k_rstd = l2norm_fwd(k, autotune_interval=autotune_interval)
         else:
             q_rstd, k_rstd = None, None
 
@@ -230,6 +231,7 @@ def chunk_gated_delta_rule(
     use_qk_l2norm_in_kernel: bool = False,
     cu_seqlens: Optional[torch.LongTensor] = None,
     head_first: bool = False,
+     autotune_interval: int = 2048
 ):
     r"""
     Args:
@@ -335,6 +337,7 @@ def chunk_gated_delta_rule(
         initial_state,
         output_final_state,
         cu_seqlens,
-        use_qk_l2norm_in_kernel
+        use_qk_l2norm_in_kernel,
+        autotune_interval
     )
     return o, final_state
