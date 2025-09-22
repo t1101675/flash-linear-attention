@@ -231,7 +231,7 @@ def chunk_gated_delta_rule(
     use_qk_l2norm_in_kernel: bool = False,
     cu_seqlens: Optional[torch.LongTensor] = None,
     head_first: bool = False,
-     autotune_interval: int = 2048
+    autotune_interval: int = 2048
 ):
     r"""
     Args:
