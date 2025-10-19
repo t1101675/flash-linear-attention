@@ -21,6 +21,11 @@ if TYPE_CHECKING:
     from fla import __version__
 
 FLA_CI_ENV = os.getenv("FLA_CI_ENV") == "1"
+FLA_CACHE_RESULTS = os.getenv('FLA_CACHE_RESULTS', '1') == '1'
+
+
+supports_autotune_cache = "cache_results" in inspect.signature(triton.autotune).parameters
+autotune_cache_kwargs = {"cache_results": FLA_CACHE_RESULTS} if supports_autotune_cache else {}
 
 
 @lru_cache(maxsize=1)
@@ -394,7 +399,7 @@ use_cuda_graph = (is_nvidia and os.environ.get('FLA_USE_CUDA_GRAPH', '0') == '1'
 is_tf32_supported = (is_nvidia and torch.cuda.get_device_capability(0)[0] >= 8)
 is_gather_supported = hasattr(triton.language, 'gather')
 is_tma_supported = (is_nvidia and torch.cuda.get_device_capability(0)[0] >= 9) \
-    and os.environ.get('FLA_NO_USE_TMA', '0') != '1' and \
+    and os.environ.get('FLA_USE_TMA', '0') == '1' and \
     (hasattr(triton.language, '_experimental_make_tensor_descriptor') or hasattr(triton.language, 'make_tensor_descriptor'))
 
 if is_nvidia and not is_tf32_supported:
