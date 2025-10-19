@@ -175,11 +175,12 @@ class ChunkCombaFunction(torch.autograd.Function):
         output_final_state: bool,
         use_qk_l2norm_in_kernel: bool = False,
         cu_seqlens: Optional[torch.LongTensor] = None,
+        autotune_interval: int = 2048
     ):
         if use_qk_l2norm_in_kernel:
-            q, q_rstd = l2norm_fwd(q)
-            k, k_rstd = l2norm_fwd(k)
-            p, p_rstd = l2norm_fwd(p)
+            q, q_rstd = l2norm_fwd(q, autotune_interval=autotune_interval)
+            k, k_rstd = l2norm_fwd(k, autotune_interval=autotune_interval)
+            p, p_rstd = l2norm_fwd(p, autotune_interval=autotune_interval)
         else:
             q_rstd, k_rstd, p_rstd = None, None, None
 
@@ -244,6 +245,7 @@ def chunk_comba(
     output_final_state: bool = False,
     use_qk_l2norm_in_kernel: bool = False,
     cu_seqlens: Optional[torch.LongTensor] = None,
+    autotune_interval: int = 2048
 ):
     r"""
     Args:
@@ -338,5 +340,6 @@ def chunk_comba(
         output_final_state,
         use_qk_l2norm_in_kernel,
         cu_seqlens,
+        autotune_interval
     )
     return o, final_state

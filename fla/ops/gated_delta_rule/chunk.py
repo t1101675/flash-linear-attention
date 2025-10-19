@@ -165,11 +165,12 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
         output_final_state: bool,
         cu_seqlens: Optional[torch.LongTensor] = None,
         use_qk_l2norm_in_kernel: bool = False,
+        autotune_interval: int = 2048
     ):
         q_rstd, k_rstd = None, None
         if use_qk_l2norm_in_kernel:
-            q, q_rstd = l2norm_fwd(q)
-            k, k_rstd = l2norm_fwd(k)
+            q, q_rstd = l2norm_fwd(q, autotune_interval=autotune_interval)
+            k, k_rstd = l2norm_fwd(k, autotune_interval=autotune_interval)
 
         g, o, A, final_state = chunk_gated_delta_rule_fwd(
             q=q,
@@ -212,7 +213,7 @@ class ChunkGatedDeltaRuleFunction(torch.autograd.Function):
         if ctx.use_qk_l2norm:
             dq = l2norm_bwd(q, q_rstd, dq)
             dk = l2norm_bwd(k, k_rstd, dk)
-        return dq.to(q), dk.to(k), dv.to(v), dg.to(g), db.to(beta), None, dh0, None, None, None
+        return dq.to(q), dk.to(k), dv.to(v), dg.to(g), db.to(beta), None, dh0, None, None, None, None
 
 
 @torch.compiler.disable
@@ -227,6 +228,7 @@ def chunk_gated_delta_rule(
     output_final_state: bool = False,
     use_qk_l2norm_in_kernel: bool = False,
     cu_seqlens: Optional[torch.LongTensor] = None,
+    autotune_interval: int = 2048,
     **kwargs,
 ):
     r"""
@@ -320,6 +322,7 @@ def chunk_gated_delta_rule(
         initial_state,
         output_final_state,
         cu_seqlens,
-        use_qk_l2norm_in_kernel
+        use_qk_l2norm_in_kernel,
+        autotune_interval
     )
     return o, final_state

@@ -29,7 +29,7 @@ fla_use_compile = os.getenv('FLA_USE_COMPILE', '1').lower() in ('1', 'true', 'ye
 if current_python_version >= min_torch_compile_version and fla_use_compile:
     torch_compile = torch.compile(fullgraph=True)
 else:
-    logger.warning('torch.compile is not available in Python 3.10, using identity decorator instead')
+    logger.warning('rwkv7: torch.compile is not available in Python 3.10, using identity decorator instead')
     torch_compile = identity_decorator
 
 NUM_WARPS_AUTOTUNE = [2, 4, 8, 16] if is_amd else [2, 4, 8, 16, 32]
